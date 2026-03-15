@@ -10,6 +10,7 @@ import com.viswa2k.eyecare.domain.GetStreakUseCase
 import com.viswa2k.eyecare.domain.RecordBreakEventUseCase
 import com.viswa2k.eyecare.service.MonitoringState
 import com.viswa2k.eyecare.service.ServiceRestartHelper
+import com.viswa2k.eyecare.service.SoundManager
 import com.viswa2k.eyecare.service.TimerManager
 import com.viswa2k.eyecare.ui.break_.BreakViewModel
 import com.viswa2k.eyecare.ui.home.HomeViewModel
@@ -28,6 +29,7 @@ val appModule = module {
     single { MonitoringState() }
     single { TimerManager(get()) }
     single { ServiceRestartHelper(get()) }
+    single { SoundManager(androidContext(), get()) }
 
     // Use Cases
     factory { RecordBreakEventUseCase(get()) }
@@ -38,6 +40,6 @@ val appModule = module {
     viewModel { HomeViewModel(get(), get(), get(), androidContext()) }
     viewModel { SettingsViewModel(get()) }
     viewModel { StatsViewModel(get(), get(), get()) }
-    viewModel { BreakViewModel(get(), get(), get()) }
+    viewModel { BreakViewModel(get(), get(), get(), get(), get()) }
     viewModel { OnboardingViewModel(get()) }
 }

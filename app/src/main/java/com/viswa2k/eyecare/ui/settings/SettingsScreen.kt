@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -48,6 +49,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
@@ -55,6 +61,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.viswa2k.eyecare.data.datastore.BreakReminderMode
 import com.viswa2k.eyecare.ui.theme.AccentColor
@@ -272,6 +279,57 @@ fun SettingsScreen(
                 SettingsToggle("Vibration", vibrationEnabled, viewModel::setVibrationEnabled)
             }
         }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // About
+        Text(
+            text = "A B O U T",
+            style = MaterialTheme.typography.labelLarge.copy(letterSpacing = 4.sp),
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "Eye2020 v1.0.0",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = "20-20-20 Rule for Eye Care",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = "Built with Jetpack Compose",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = "Created with \uD83D\uDC9B by viswa2k",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+
+        val uriHandler = LocalUriHandler.current
+        Text(
+            text = "GitHub",
+            style = MaterialTheme.typography.bodyMedium.copy(
+                color = MaterialTheme.colorScheme.primary,
+                textDecoration = TextDecoration.Underline
+            ),
+            modifier = Modifier.clickable {
+                uriHandler.openUri("https://github.com/viswanathanTJ/EyeCareAndroid")
+            }
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
     }
 }
 

@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -40,6 +39,16 @@ fun BreakScreen(
     viewModel: BreakViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val breaksToday by viewModel.breaksToday.collectAsStateWithLifecycle()
+
+    // Show celebration screen when break finishes
+    if (uiState.isFinished) {
+        BreakCompleteScreen(
+            breaksToday = breaksToday,
+            onDismiss = onDismiss
+        )
+        return
+    }
 
     var confirmAction by remember { mutableStateOf<ConfirmAction?>(null) }
     val confirmQuote = remember(confirmAction) { BreakTipsProvider.getRandomTip() }
@@ -124,12 +133,7 @@ fun BreakScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        if (uiState.isFinished) {
-            FilledTonalButton(onClick = onDismiss) {
-                Text("Done")
-            }
-        } else {
-            Row {
+        Row {
                 OutlinedButton(onClick = { confirmAction = ConfirmAction.SKIP }) {
                     Text("Skip")
                 }
@@ -140,6 +144,5 @@ fun BreakScreen(
                     Text("Snooze (${uiState.snoozeDurationMinutes}m)")
                 }
             }
-        }
     }
 }

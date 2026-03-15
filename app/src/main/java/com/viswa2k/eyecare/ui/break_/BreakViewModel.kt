@@ -5,14 +5,19 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.viswa2k.eyecare.data.datastore.PreferencesManager
 import com.viswa2k.eyecare.data.db.entity.BreakEventType
+import com.viswa2k.eyecare.data.repository.BreakRepository
 import com.viswa2k.eyecare.domain.BreakTipsProvider
 import com.viswa2k.eyecare.domain.RecordBreakEventUseCase
 import com.viswa2k.eyecare.service.BreakResult
 import com.viswa2k.eyecare.service.MonitoringState
+import com.viswa2k.eyecare.service.SoundManager
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 data class BreakUiState(
@@ -28,11 +33,17 @@ data class BreakUiState(
 class BreakViewModel(
     private val recordBreakEventUseCase: RecordBreakEventUseCase,
     private val preferencesManager: PreferencesManager,
-    private val monitoringState: MonitoringState
+    private val monitoringState: MonitoringState,
+    breakRepository: BreakRepository,
+    private val soundManager: SoundManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(BreakUiState())
     val uiState: StateFlow<BreakUiState> = _uiState.asStateFlow()
+
+    val breaksToday: StateFlow<Int> = breakRepository.getTodayStats()
+        .map { it?.breaksTaken ?: 0 }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
     private var countDownTimer: CountDownTimer? = null
 
@@ -64,6 +75,7 @@ class BreakViewModel(
                 )
                 viewModelScope.launch {
                     recordBreakEventUseCase(BreakEventType.TAKEN)
+                    soundManager.playBreakComplete()
                 }
                 monitoringState.emitBreakResult(BreakResult.Taken)
             }

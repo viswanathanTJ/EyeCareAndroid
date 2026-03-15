@@ -21,6 +21,7 @@ class EyeCareService : Service() {
     private val timerManager: TimerManager by inject()
     private val monitoringState: MonitoringState by inject()
     private val preferencesManager: PreferencesManager by inject()
+    private val soundManager: SoundManager by inject()
 
     private lateinit var notificationHelper: NotificationHelper
     private var screenStateReceiver: ScreenStateReceiver? = null
@@ -162,6 +163,8 @@ class EyeCareService : Service() {
     }
 
     private suspend fun onCycleComplete() {
+        // Play break reminder sound
+        soundManager.playBreakReminder()
         // Timer stays stopped — waiting for user to take/skip/snooze break
         val mode = preferencesManager.breakReminderMode.first()
         when (mode) {
