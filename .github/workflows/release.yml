@@ -8,6 +8,9 @@ on:
 permissions:
   contents: write
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -23,72 +26,56 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+          cache: 'gradle'
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Decode keystore
-        env:
-          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
-        run: |
-          echo "$KEYSTORE_BASE64" | base64 -d > app/release-keystore.jks
-
       - name: Build signed Release APK
-        env:
-          RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
-          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
-          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
         run: |
-          ./gradlew assembleRelease \
+          ./gradlew assembleRelease --no-daemon --build-cache \
+            -x lintVitalRelease \
+            -PKEYSTORE_BASE64="${{ secrets.KEYSTORE_BASE64 }}" \
             -PRELEASE_STORE_FILE=release-keystore.jks \
-            -PRELEASE_STORE_PASSWORD="$RELEASE_STORE_PASSWORD" \
-            -PRELEASE_KEY_ALIAS="$RELEASE_KEY_ALIAS" \
-            -PRELEASE_KEY_PASSWORD="$RELEASE_KEY_PASSWORD"
+            -PRELEASE_STORE_PASSWORD="${{ secrets.RELEASE_STORE_PASSWORD }}" \
+            -PRELEASE_KEY_ALIAS="${{ secrets.RELEASE_KEY_ALIAS }}" \
+            -PRELEASE_KEY_PASSWORD="${{ secrets.RELEASE_KEY_PASSWORD }}"
 
       - name: Get version from tag
         id: version
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
 
-      - name: Generate changelog from commits
-        id: changelog
+      - name: Generate changelog
         run: |
           PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || git rev-list --max-parents=0 HEAD)
           CURRENT_TAG=${GITHUB_REF#refs/tags/}
+          {
+            echo "## What's Changed in ${CURRENT_TAG}"
+            echo ""
+            echo "### Features"
+            git log ${PREV_TAG}..HEAD --pretty=format:"- %s" --grep="^[Aa]dd\|^[Ff]eat\|^[Nn]ew" | head -50 || true
+            echo ""
+            echo "### Bug Fixes"
+            git log ${PREV_TAG}..HEAD --pretty=format:"- %s" --grep="^[Ff]ix\|^[Bb]ug" | head -50 || true
+            echo ""
+            echo "### Other Changes"
+            git log ${PREV_TAG}..HEAD --pretty=format:"- %s" --invert-grep --grep="^[Aa]dd\|^[Ff]eat\|^[Nn]ew\|^[Ff]ix\|^[Bb]ug" | head -50 || true
+            echo ""
+            echo "---"
+            echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREV_TAG}...${CURRENT_TAG}"
+          } > CHANGESET.md
 
-          echo "## What's Changed in ${CURRENT_TAG}" > CHANGESET.md
-          echo "" >> CHANGESET.md
-
-          echo "### Features" >> CHANGESET.md
-          git log ${PREV_TAG}..HEAD --pretty=format:"- %s" --grep="^[Aa]dd\|^[Ff]eat\|^[Nn]ew" | head -50 >> CHANGESET.md || true
-          echo "" >> CHANGESET.md
-
-          echo "### Bug Fixes" >> CHANGESET.md
-          git log ${PREV_TAG}..HEAD --pretty=format:"- %s" --grep="^[Ff]ix\|^[Bb]ug" | head -50 >> CHANGESET.md || true
-          echo "" >> CHANGESET.md
-
-          echo "### Other Changes" >> CHANGESET.md
-          git log ${PREV_TAG}..HEAD --pretty=format:"- %s" --invert-grep --grep="^[Aa]dd\|^[Ff]eat\|^[Nn]ew\|^[Ff]ix\|^[Bb]ug" | head -50 >> CHANGESET.md || true
-          echo "" >> CHANGESET.md
-
-          echo "---" >> CHANGESET.md
-          echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREV_TAG}...${CURRENT_TAG}" >> CHANGESET.md
-
-      - name: Rename APKs
+      - name: Rename APK
         run: |
           VERSION=${{ steps.version.outputs.VERSION }}
-          cp app/build/outputs/apk/release/app-release.apk EyeCare-${VERSION}-release.apk 2>/dev/null || \
-          cp app/build/outputs/apk/release/*.apk EyeCare-${VERSION}-release.apk 2>/dev/null || true
+          cp app/build/outputs/apk/release/app-release.apk Eye2020-${VERSION}-release.apk 2>/dev/null || \
+          cp app/build/outputs/apk/release/*.apk Eye2020-${VERSION}-release.apk 2>/dev/null || true
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          name: "Eye Care ${{ steps.version.outputs.VERSION }}"
+          name: "Eye2020 ${{ steps.version.outputs.VERSION }}"
           body_path: CHANGESET.md
           draft: false
           prerelease: ${{ contains(github.ref, '-beta') || contains(github.ref, '-rc') || contains(github.ref, '-alpha') }}
-          files: |
-            EyeCare-*.apk
-          generate_release_notes: false
+          files: Eye2020-*.apk

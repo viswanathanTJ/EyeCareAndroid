@@ -1,4 +1,5 @@
 import java.io.FileInputStream
+import java.util.Base64
 import java.util.Properties
 
 plugins {
@@ -14,6 +15,15 @@ rootProject.file("local.properties").takeIf { it.exists() }?.let {
 
 fun signingProp(key: String): String =
     providers.gradleProperty(key).getOrElse(localProperties.getProperty(key) ?: "")
+
+// Decode keystore from base64 if KEYSTORE_BASE64 is set and .jks doesn't exist
+val keystoreFile = file("release-keystore.jks")
+if (!keystoreFile.exists()) {
+    val base64 = signingProp("KEYSTORE_BASE64")
+    if (base64.isNotBlank()) {
+        keystoreFile.writeBytes(Base64.getDecoder().decode(base64))
+    }
+}
 
 android {
     namespace = "com.viswa2k.eyecare"
@@ -39,6 +49,7 @@ android {
             storePassword = signingProp("RELEASE_STORE_PASSWORD")
             keyAlias = signingProp("RELEASE_KEY_ALIAS")
             keyPassword = signingProp("RELEASE_KEY_PASSWORD")
+            storeType = "PKCS12"
         }
     }
 
