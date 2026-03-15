@@ -1,4 +1,4 @@
-# Eye Care
+# Eye2020
 
 An Android app that enforces the **20-20-20 rule** to reduce eye strain: every 20 minutes of screen usage, take a 20-second break and look at something 20 feet away.
 
@@ -10,11 +10,19 @@ An Android app that enforces the **20-20-20 rule** to reduce eye strain: every 2
 - **Home Screen Widget** — Quick toggle and status at a glance
 - **Auto-Start** — Monitoring starts automatically when the app opens
 - **Boot Persistence** — Service restarts after device reboot
-- **Dark Mode** — Eye-friendly color palette with full dark mode support
+- **Theming** — System/Light/Dark mode with customizable primary & secondary accent colors
+- **Break Celebration** — Confetti animation and sound on break completion
+- **Snooze** — Configurable snooze duration to remind again later
 
 ## Screenshots
 
-*Coming soon*
+| HomePage | BreakPage | CompletePage |
+|:---------:|:-----:|:--------:|
+| ![HomePage](screenshots/HomePage.png) | ![BreakPage](screenshots/BreakPage.png) | ![CompletePage](screenshots/CompletePage.png) |
+
+| SettingsPage | StatsPage |
+|:--------:|:----------:|
+| ![SettingsPage](screenshots/SettingsPage.png) | ![StatsPage](screenshots/StatsPage.png) |
 
 ## Tech Stack
 
@@ -39,10 +47,10 @@ An Android app that enforces the **20-20-20 rule** to reduce eye strain: every 2
 ./gradlew lint                # Lint checks
 ```
 
-Release signing requires these properties in `~/.gradle/gradle.properties`:
+Release signing requires these properties in `local.properties`:
 
 ```properties
-RELEASE_STORE_FILE=/path/to/keystore.jks
+RELEASE_STORE_FILE=release-keystore.jks
 RELEASE_STORE_PASSWORD=your_password
 RELEASE_KEY_ALIAS=your_alias
 RELEASE_KEY_PASSWORD=your_key_password

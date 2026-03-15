@@ -39,6 +39,7 @@ android {
             storePassword = signingProp("RELEASE_STORE_PASSWORD")
             keyAlias = signingProp("RELEASE_KEY_ALIAS")
             keyPassword = signingProp("RELEASE_KEY_PASSWORD")
+            storeType = "PKCS12"
         }
     }
 
