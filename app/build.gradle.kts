@@ -1,8 +1,19 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
 }
+
+val localProperties = Properties()
+rootProject.file("local.properties").takeIf { it.exists() }?.let {
+    FileInputStream(it).use { fis -> localProperties.load(fis) }
+}
+
+fun signingProp(key: String): String =
+    providers.gradleProperty(key).getOrElse(localProperties.getProperty(key) ?: "")
 
 android {
     namespace = "com.viswa2k.eyecare"
@@ -24,10 +35,10 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = file(providers.gradleProperty("RELEASE_STORE_FILE").getOrElse(""))
-            storePassword = providers.gradleProperty("RELEASE_STORE_PASSWORD").getOrElse("")
-            keyAlias = providers.gradleProperty("RELEASE_KEY_ALIAS").getOrElse("")
-            keyPassword = providers.gradleProperty("RELEASE_KEY_PASSWORD").getOrElse("")
+            storeFile = file(signingProp("RELEASE_STORE_FILE"))
+            storePassword = signingProp("RELEASE_STORE_PASSWORD")
+            keyAlias = signingProp("RELEASE_KEY_ALIAS")
+            keyPassword = signingProp("RELEASE_KEY_PASSWORD")
         }
     }
 
