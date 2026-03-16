@@ -83,6 +83,9 @@ fun SettingsScreen(
     val cycleDuration by viewModel.cycleDurationMinutes.collectAsStateWithLifecycle()
     val breakDuration by viewModel.breakDurationSeconds.collectAsStateWithLifecycle()
     val snoozeDuration by viewModel.snoozeDurationMinutes.collectAsStateWithLifecycle()
+    var localCycleDuration by remember { mutableStateOf(cycleDuration) }
+    var localBreakDuration by remember { mutableStateOf(breakDuration) }
+    var localSnoozeDuration by remember { mutableStateOf(snoozeDuration) }
     val startOnBoot by viewModel.startOnBoot.collectAsStateWithLifecycle()
     val soundEnabled by viewModel.soundEnabled.collectAsStateWithLifecycle()
     val vibrationEnabled by viewModel.vibrationEnabled.collectAsStateWithLifecycle()
@@ -190,12 +193,13 @@ fun SettingsScreen(
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    text = "Cycle Duration: $cycleDuration min",
+                    text = "Cycle Duration: ${localCycleDuration} min",
                     style = MaterialTheme.typography.bodyLarge
                 )
                 Slider(
-                    value = cycleDuration.toFloat(),
-                    onValueChange = { viewModel.setCycleDurationMinutes(it.toInt()) },
+                    value = localCycleDuration.toFloat(),
+                    onValueChange = { localCycleDuration = it.toInt() },
+                    onValueChangeFinished = { viewModel.setCycleDurationMinutes(localCycleDuration) },
                     valueRange = 5f..60f,
                     steps = 10
                 )
@@ -203,12 +207,13 @@ fun SettingsScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = "Break Duration: $breakDuration sec",
+                    text = "Break Duration: ${localBreakDuration} sec",
                     style = MaterialTheme.typography.bodyLarge
                 )
                 Slider(
-                    value = breakDuration.toFloat(),
-                    onValueChange = { viewModel.setBreakDurationSeconds(it.toInt()) },
+                    value = localBreakDuration.toFloat(),
+                    onValueChange = { localBreakDuration = it.toInt() },
+                    onValueChangeFinished = { viewModel.setBreakDurationSeconds(localBreakDuration) },
                     valueRange = 10f..60f,
                     steps = 9
                 )
@@ -216,12 +221,13 @@ fun SettingsScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = "Snooze Duration: $snoozeDuration min",
+                    text = "Snooze Duration: ${localSnoozeDuration} min",
                     style = MaterialTheme.typography.bodyLarge
                 )
                 Slider(
-                    value = snoozeDuration.toFloat(),
-                    onValueChange = { viewModel.setSnoozeDurationMinutes(it.toInt()) },
+                    value = localSnoozeDuration.toFloat(),
+                    onValueChange = { localSnoozeDuration = it.toInt() },
+                    onValueChangeFinished = { viewModel.setSnoozeDurationMinutes(localSnoozeDuration) },
                     valueRange = 1f..15f,
                     steps = 13
                 )

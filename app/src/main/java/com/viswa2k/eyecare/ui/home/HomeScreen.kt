@@ -37,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.viswa2k.eyecare.domain.formatDuration
 import com.viswa2k.eyecare.ui.home.components.CountdownDisplay
 import com.viswa2k.eyecare.ui.home.components.QuickStatsCard
 import com.viswa2k.eyecare.ui.home.components.StreakBadge
@@ -273,17 +274,5 @@ fun HomeScreen(
                 )
             }
         }
-    }
-}
-
-private fun formatDuration(millis: Long): String {
-    val totalSeconds = millis / 1000
-    val hours = totalSeconds / 3600
-    val minutes = (totalSeconds % 3600) / 60
-    val seconds = totalSeconds % 60
-    return when {
-        hours > 0 -> "${hours}h ${minutes}m"
-        minutes > 0 -> "${minutes}m ${seconds}s"
-        else -> "${seconds}s"
     }
 }

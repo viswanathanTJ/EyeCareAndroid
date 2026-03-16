@@ -26,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.koin.androidx.compose.koinViewModel
+import com.viswa2k.eyecare.domain.formatDuration
 import com.viswa2k.eyecare.ui.stats.components.ProgressRing
 import com.viswa2k.eyecare.ui.stats.components.WeeklyChart
 
@@ -193,17 +194,5 @@ fun StatsScreen(
                 modifier = Modifier.padding(16.dp)
             )
         }
-    }
-}
-
-private fun formatDuration(millis: Long): String {
-    val totalSeconds = millis / 1000
-    val hours = totalSeconds / 3600
-    val minutes = (totalSeconds % 3600) / 60
-    val seconds = totalSeconds % 60
-    return when {
-        hours > 0 -> "${hours}h ${minutes}m ${seconds}s"
-        minutes > 0 -> "${minutes}m ${seconds}s"
-        else -> "${seconds}s"
     }
 }

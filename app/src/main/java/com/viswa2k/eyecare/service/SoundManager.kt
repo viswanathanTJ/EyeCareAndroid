@@ -15,28 +15,28 @@ class SoundManager(
 ) {
     private var mediaPlayer: MediaPlayer? = null
 
-    suspend fun playBreakReminder() {
-        val soundEnabled = preferencesManager.soundEnabled.first()
-        val vibrationEnabled = preferencesManager.vibrationEnabled.first()
-
-        if (soundEnabled) {
-            playNotificationSound()
-        }
-        if (vibrationEnabled) {
-            vibrate(longArrayOf(0, 200, 100, 200))
+    private val vibrator: Vibrator by lazy {
+        if (android.os.Build.VERSION.SDK_INT >= 31) {
+            val vm = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+            vm.defaultVibrator
+        } else {
+            @Suppress("DEPRECATION")
+            context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
         }
     }
 
-    suspend fun playBreakComplete() {
-        val soundEnabled = preferencesManager.soundEnabled.first()
-        val vibrationEnabled = preferencesManager.vibrationEnabled.first()
+    suspend fun playBreakReminder() {
+        playFeedback(longArrayOf(0, 200, 100, 200))
+    }
 
-        if (soundEnabled) {
-            playNotificationSound()
-        }
-        if (vibrationEnabled) {
-            vibrate(longArrayOf(0, 100, 50, 100, 50, 200))
-        }
+    suspend fun playBreakComplete() {
+        playFeedback(longArrayOf(0, 100, 50, 100, 50, 200))
+    }
+
+    private suspend fun playFeedback(vibrationPattern: LongArray) {
+        val prefs = preferencesManager.preferencesSnapshot()
+        if (prefs.first) playNotificationSound()
+        if (prefs.second) vibrate(vibrationPattern)
     }
 
     private fun playNotificationSound() {
@@ -47,24 +47,13 @@ class SoundManager(
                 setOnCompletionListener { it.release() }
                 start()
             }
-        } catch (_: Exception) {
-            // Silently fail if sound can't play
-        }
+        } catch (_: Exception) { }
     }
 
     private fun vibrate(pattern: LongArray) {
         try {
-            val vibrator = if (android.os.Build.VERSION.SDK_INT >= 31) {
-                val vm = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
-                vm.defaultVibrator
-            } else {
-                @Suppress("DEPRECATION")
-                context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-            }
             vibrator.vibrate(VibrationEffect.createWaveform(pattern, -1))
-        } catch (_: Exception) {
-            // Silently fail
-        }
+        } catch (_: Exception) { }
     }
 
     fun release() {

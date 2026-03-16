@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 class PreferencesManager(
@@ -91,6 +92,15 @@ class PreferencesManager(
 
     suspend fun setVibrationEnabled(enabled: Boolean) {
         dataStore.edit { it[Keys.VIBRATION_ENABLED] = enabled }
+    }
+
+    /** Returns (soundEnabled, vibrationEnabled) in a single DataStore read. */
+    suspend fun preferencesSnapshot(): Pair<Boolean, Boolean> {
+        val prefs = dataStore.data.first()
+        return Pair(
+            prefs[Keys.SOUND_ENABLED] ?: true,
+            prefs[Keys.VIBRATION_ENABLED] ?: true
+        )
     }
 
     suspend fun setAccentColor(name: String) {

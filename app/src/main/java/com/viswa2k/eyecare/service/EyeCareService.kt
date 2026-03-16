@@ -25,6 +25,7 @@ class EyeCareService : Service() {
 
     private lateinit var notificationHelper: NotificationHelper
     private var screenStateReceiver: ScreenStateReceiver? = null
+    private var screenTimeTickerJob: kotlinx.coroutines.Job? = null
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     override fun onCreate() {
@@ -40,7 +41,8 @@ class EyeCareService : Service() {
         registerScreenReceiver()
         observeTimerState()
         observeBreakResult()
-        startScreenTimeTracker()
+        monitoringState.onScreenOn()
+        startScreenTimeTicker()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -67,14 +69,19 @@ class EyeCareService : Service() {
         serviceScope.cancel()
     }
 
-    private fun startScreenTimeTracker() {
-        monitoringState.onScreenOn()
-        serviceScope.launch {
+    private fun startScreenTimeTicker() {
+        screenTimeTickerJob?.cancel()
+        screenTimeTickerJob = serviceScope.launch {
             while (true) {
                 kotlinx.coroutines.delay(1000L)
                 monitoringState.tickScreenTime()
             }
         }
+    }
+
+    private fun stopScreenTimeTicker() {
+        screenTimeTickerJob?.cancel()
+        screenTimeTickerJob = null
     }
 
     private fun startMonitoring() {
@@ -106,12 +113,14 @@ class EyeCareService : Service() {
         screenStateReceiver = ScreenStateReceiver(
             onScreenOn = {
                 monitoringState.onScreenOn()
+                startScreenTimeTicker()
                 if (monitoringState.isMonitoring.value) {
                     timerManager.resetAndStart()
                 }
             },
             onScreenOff = {
                 monitoringState.onScreenOff()
+                stopScreenTimeTicker()
                 timerManager.reset()
             }
         )
@@ -129,14 +138,20 @@ class EyeCareService : Service() {
         }
     }
 
+    private var lastNotifiedMinutes = -1
+    private var lastNotifiedSeconds = -1
+
     private fun observeTimerState() {
         serviceScope.launch {
             monitoringState.timerState.collect { state ->
                 if (monitoringState.isMonitoring.value && state.isRunning) {
-                    notificationHelper.updateMonitoringNotification(
-                        state.remainingMinutes,
-                        state.remainingSecondsInMinute
-                    )
+                    val mins = state.remainingMinutes
+                    val secs = state.remainingSecondsInMinute
+                    if (mins != lastNotifiedMinutes || secs != lastNotifiedSeconds) {
+                        lastNotifiedMinutes = mins
+                        lastNotifiedSeconds = secs
+                        notificationHelper.updateMonitoringNotification(mins, secs)
+                    }
                 }
             }
         }
